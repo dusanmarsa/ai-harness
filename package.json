@@ -2,7 +2,10 @@
   "name": "ai-harness",
   "type": "module",
   "scripts": {
-    "dev": "bun --env-file=.env run app/main.tsx"
+    "dev": "bun --env-file=.env run app/main.tsx",
+    "vector:download": "bun run scripts/download-sqlite-vector.ts",
+    "vector:index": "bun --env-file=.env run app/vector/cli.ts index",
+    "vector:search": "bun --env-file=.env run app/vector/cli.ts search"
   },
   "dependencies": {
     "cli-spinners": "^3.4.0",
