@@ -1,9 +1,7 @@
 import { render } from "ink";
-import { CliApp } from "./CliApp";
+import { ClUI } from "./clui";
 
-const apiKey = process.env.OPEN_AI_API_KEY;
-
-if (!apiKey) {
+if (!process.env.OPEN_AI_API_KEY) {
   console.error("OPEN_AI_API_KEY is not set");
   process.exit(1);
 }
@@ -16,7 +14,7 @@ if (!process.stdin.isTTY || !process.stdout.isTTY) {
   process.exit(1);
 }
 
-const { waitUntilExit } = render(<CliApp apiKey={apiKey} />, {
+const { waitUntilExit } = render(<ClUI />, {
   exitOnCtrlC: true
 });
 

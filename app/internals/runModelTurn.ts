@@ -3,47 +3,51 @@ import type {
   ChatCompletionAssistantMessageParam,
   ChatCompletionMessageParam,
 } from "openai/resources";
-import { processToolCall, tools } from "./tools";
+import { processToolCall, tools } from "../tools";
 
 export const DEFAULT_SYSTEM_CONTENT =
   "You are a helpful assistant that can answer questions and help with tasks.";
 
-export function createInitialMessages(
+export const createMessagesArray = (
   firstUserMessage?: string,
-): ChatCompletionMessageParam[] {
+): ChatCompletionMessageParam[] => {
   const base: ChatCompletionMessageParam[] = [
     { role: "system", content: DEFAULT_SYSTEM_CONTENT },
   ];
+
   if (firstUserMessage) {
     base.push({ role: "user", content: firstUserMessage });
   }
-  return base;
-}
 
-export function getLastAssistantText(
+  return base;
+};
+
+export const getLastAssistantMessage = (
   messages: ChatCompletionMessageParam[],
-): string | null {
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const m = messages[i];
-    if (m.role !== "assistant") continue;
-    const c = m.content;
-    if (typeof c === "string" && c.length > 0) {
-      return c;
+): ChatCompletionAssistantMessageParam | null => {
+  let lastAssistantMessageContent: ChatCompletionAssistantMessageParam | null = null;
+
+  for (const m of messages) { 
+    if (m.role === "assistant") {
+      lastAssistantMessageContent = m satisfies ChatCompletionAssistantMessageParam;
     }
   }
-  return null;
-}
+
+  return lastAssistantMessageContent;
+};
 
 export type RunModelTurnOptions = {
   onToolLog?: (message: string) => void;
 };
 
-export async function runModelTurn(
-  client: OpenAI,
+export const runModelTurn = async (
   messages: ChatCompletionMessageParam[],
   options?: RunModelTurnOptions,
-): Promise<void> {
+): Promise<void> => {
+  const client = new OpenAI({ apiKey: process.env.OPEN_AI_API_KEY });
+
   const { onToolLog } = options ?? {};
+
   let shouldContinue = true;
 
   while (shouldContinue) {
@@ -53,45 +57,57 @@ export async function runModelTurn(
       tools,
     });
 
-    const choice = response.choices[0];
+    const choice = response.choices?.[0];
+
     if (!choice) {
       throw new Error("No response choice from the model");
     }
 
     const msg = choice.message;
+    
+    if (!msg) {
+      throw new Error("No message from the model");
+    }
+
     messages.push({
       role: "assistant",
       content: msg.content,
       tool_calls: msg.tool_calls,
     } satisfies ChatCompletionAssistantMessageParam);
 
-    if (choice.finish_reason === "stop") {
+    if (choice.finish_reason === "stop" || !msg.tool_calls) {
       shouldContinue = false;
       break;
     }
 
     if (choice.finish_reason === "tool_calls") {
-      const toolType = msg.tool_calls?.[0]?.type;
-      const toolCallId = msg.tool_calls?.[0]?.id ?? "";
+      const toolCall = msg.tool_calls?.[0];
+
+      const toolType = toolCall?.type;
+      const toolCallId = toolCall?.id;
+
+      if (!toolCallId || !toolType) {
+        throw new Error("No tool call id or type from the model");
+      }
 
       if (toolType === "function") {
-        const toolFn = msg.tool_calls?.[0]?.function;
+        const toolFn = toolCall?.function;
         const { name, arguments: args } = toolFn ?? {};
 
         if (!name || args === undefined) {
           continue;
         }
 
-        const toolResult = await processToolCall(
-          toolCallId,
-          name,
-          args,
-          { onLog: onToolLog },
-        );
+        const toolResult = await processToolCall(toolCallId, name, args, {
+          onLog: onToolLog,
+        });
+
+        if (!toolResult) {
+          throw new Error("No tool result from the model");
+        }
+
         messages.push(toolResult);
       }
-    } else {
-      shouldContinue = false;
     }
   }
 }

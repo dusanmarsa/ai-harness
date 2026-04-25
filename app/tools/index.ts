@@ -9,17 +9,11 @@ import {
   readFileToolFunction,
   readFileToolFunctionArgsSchema,
 } from "./readFile";
-import {
-  semanticSearchToolDefinition,
-  semanticSearchToolFunction,
-  semanticSearchToolFunctionArgsSchema,
-} from "./semanticSearch";
 import { ZodError } from "zod";
 
 export const tools = [
   findFilesToolDefinition,
-  readFileToolDefinition,
-  semanticSearchToolDefinition,
+  readFileToolDefinition
 ];
 
 const parseJsonArgs = (args: string) => {
@@ -93,22 +87,6 @@ export const processToolCall = async (
       const listing = await findFilesToolFunction(data.query);
 
       return createToolSuccessMessage(toolCallId, listing);
-    }
-    case "semanticSearch": {
-      const { success, data, error } =
-        semanticSearchToolFunctionArgsSchema.safeParse(parseJsonArgs(toolArgs));
-
-      if (!success) {
-        return createToolErrorMessage(toolCallId, error);
-      }
-
-      log(
-        `Searching: ${data.query}${data.topK != null ? ` (topK: ${data.topK})` : ""}`,
-      );
-
-      const text = await semanticSearchToolFunction(data.query, data.topK);
-
-      return createToolSuccessMessage(toolCallId, text);
     }
     default: {
       return createToolErrorMessage(
