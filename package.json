@@ -1,0 +1,15 @@
+{
+  "name": "ai-harness",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --env-file=.env run app/main.ts"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "openai": "^6.16.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
