@@ -57,7 +57,7 @@ const TranscriptItem = ({
       flexDirection="column"
       width={columns}
       paddingLeft={1}
-      marginBottom={1}
+      marginTop={1}
     >
       {getTranscriptItemText(item.kind, item.text)}
     </Box>

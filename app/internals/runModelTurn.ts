@@ -38,6 +38,7 @@ export const getLastAssistantMessage = (
 
 export type RunModelTurnOptions = {
   onToolLog?: (message: string) => void;
+  onChunk?: (delta: string) => void;
 };
 
 export const runModelTurn = async (
@@ -46,25 +47,30 @@ export const runModelTurn = async (
 ): Promise<void> => {
   const client = new OpenAI({ apiKey: process.env.OPEN_AI_API_KEY });
 
-  const { onToolLog } = options ?? {};
+  const { onToolLog, onChunk } = options ?? {};
 
   let shouldContinue = true;
 
   while (shouldContinue) {
-    const response = await client.chat.completions.create({
+    const runner = client.chat.completions.stream({
       model: "gpt-4.1",
       messages,
       tools,
     });
 
-    const choice = response.choices?.[0];
+    if (onChunk) {
+      runner.on("content", (delta) => onChunk(delta));
+    }
+
+    const finalCompletion = await runner.finalChatCompletion();
+    const choice = finalCompletion.choices?.[0];
 
     if (!choice) {
       throw new Error("No response choice from the model");
     }
 
     const msg = choice.message;
-    
+
     if (!msg) {
       throw new Error("No message from the model");
     }
@@ -75,38 +81,36 @@ export const runModelTurn = async (
       tool_calls: msg.tool_calls,
     } satisfies ChatCompletionAssistantMessageParam);
 
-    if (choice.finish_reason === "stop" || !msg.tool_calls) {
+    if (choice.finish_reason === "stop" || !msg.tool_calls?.length) {
       shouldContinue = false;
       break;
     }
 
     if (choice.finish_reason === "tool_calls") {
-      const toolCall = msg.tool_calls?.[0];
+      for (const toolCall of msg.tool_calls) {
+        const { type: toolType, id: toolCallId } = toolCall;
 
-      const toolType = toolCall?.type;
-      const toolCallId = toolCall?.id;
-
-      if (!toolCallId || !toolType) {
-        throw new Error("No tool call id or type from the model");
-      }
-
-      if (toolType === "function") {
-        const toolFn = toolCall?.function;
-        const { name, arguments: args } = toolFn ?? {};
-
-        if (!name || args === undefined) {
-          continue;
+        if (!toolCallId || !toolType) {
+          throw new Error("No tool call id or type from the model");
         }
 
-        const toolResult = await processToolCall(toolCallId, name, args, {
-          onLog: onToolLog,
-        });
+        if (toolType === "function") {
+          const { name, arguments: args } = toolCall.function;
 
-        if (!toolResult) {
-          throw new Error("No tool result from the model");
+          if (!name || args === undefined) {
+            continue;
+          }
+
+          const toolResult = await processToolCall(toolCallId, name, args, {
+            onLog: onToolLog,
+          });
+
+          if (!toolResult) {
+            throw new Error("No tool result from the model");
+          }
+
+          messages.push(toolResult);
         }
-
-        messages.push(toolResult);
       }
     }
   }
