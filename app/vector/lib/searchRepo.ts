@@ -5,7 +5,7 @@ import {
   preloadVectorIndex,
   type OpenVectorDbOptions,
 } from "./openDb";
-import { getMeta } from "./meta";
+import { getMeta } from "../utils";
 
 export type SearchHit = {
   path: string;

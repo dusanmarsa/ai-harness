@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { Database } from "bun:sqlite";
-import { defaultVendorVectorPath } from "./paths";
+import { defaultVendorVectorPath } from "../utils";
 
 export type OpenVectorDbOptions = {
   dbPath: string;

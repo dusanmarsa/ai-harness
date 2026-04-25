@@ -1,6 +1,6 @@
 import {
   defaultDatabasePath,
-} from "./lib/paths";
+} from "./utils";
 import { indexCodebase } from "./lib/indexRepo";
 import { searchCodebase, type SearchHit } from "./lib/searchRepo";
 

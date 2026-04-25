@@ -1,6 +1,6 @@
 import type { ChatCompletionTool } from "openai/resources";
 import { z } from "zod";
-import { defaultDatabasePath } from "../vector/lib/paths";
+import { defaultDatabasePath } from "../vector/utils";
 import { searchCodebase, type SearchHit } from "../vector/lib/searchRepo";
 
 const DEFAULT_MODEL = "text-embedding-3-small";
@@ -77,6 +77,7 @@ export const semanticSearchToolFunctionArgsSchema = z
       .min(1)
       .max(20)
       .optional()
+      .default(8)
       .describe("How many matching chunks to return (default 8)"),
   })
   .strict();

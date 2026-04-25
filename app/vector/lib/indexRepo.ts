@@ -8,7 +8,7 @@ import {
   rebuildVectorIndex,
   type OpenVectorDbOptions,
 } from "./openDb";
-import { setMeta } from "./meta";
+import { setMeta } from "../utils";
 import { walkCodebase } from "./walkCodebase";
 
 export type IndexOptions = {

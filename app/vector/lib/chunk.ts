@@ -10,12 +10,13 @@ export type TextChunk = {
  * Splits a file into line-bounded chunks so each chunk is at most `maxChars`
  * (unless a single line exceeds that, in which case the line is taken alone).
  */
-export function chunkSource(
+export const chunkSource = (
   content: string,
   maxChars: number = DEFAULT_MAX_CHARS
-): TextChunk[] {
+): TextChunk[] => {
   const lines = content.split("\n");
   const chunks: TextChunk[] = [];
+
   let startLine = 1;
   let buffer: string[] = [];
   let length = 0;
@@ -31,8 +32,10 @@ export function chunkSource(
         buffer = [];
         length = 0;
       }
+
       chunks.push({ startLine: lineNum, endLine: lineNum, text: line });
       startLine = lineNum + 1;
+
       continue;
     }
 
@@ -57,11 +60,11 @@ export function chunkSource(
   return chunks;
 }
 
-function flushBuffer(
+const flushBuffer = (
   buffer: string[],
   startLine: number,
   endLineInclusive: number
-): TextChunk {
+): TextChunk => {
   return {
     startLine,
     endLine: endLineInclusive,
