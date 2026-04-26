@@ -70,7 +70,7 @@ export const Input = ({ busy, setBusy, setTranscript, setStreamingText, messages
         setBusy(false);
       }
     },
-    [busy],
+    [busy, sessionPath, messagesRef, setBusy, setStreamingText, setTranscript],
   );
 
   return (
@@ -90,6 +90,7 @@ export const Input = ({ busy, setBusy, setTranscript, setStreamingText, messages
             onChange={setInput}
             onSubmit={submit}
             focus={!busy}
+            showCursor={!busy}
             placeholder="Type your message… (Ctrl+C to exit)"
           />
         </Box>

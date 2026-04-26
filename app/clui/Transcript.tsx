@@ -1,4 +1,5 @@
-import { Box, Static, Text } from "ink";
+import { memo } from "react";
+import { Box, Text } from "ink";
 
 export type TranscriptItem = {
   id: string;
@@ -42,39 +43,28 @@ const getTranscriptItemText = (kind: TranscriptItem["kind"], text: string) => {
   }
 };
 
-const TranscriptItem = ({
-  index,
-  item,
-  columns,
-}: {
-  index: number;
-  item: TranscriptItem;
-  columns: number;
-}) => {
-  return (
-    <Box
-      key={`${item.id}-${index}`}
-      flexDirection="column"
-      width={columns}
-      paddingLeft={1}
-      marginTop={1}
-    >
-      {getTranscriptItemText(item.kind, item.text)}
-    </Box>
-  );
-};
+const TranscriptItem = memo(
+  ({
+    item,
+    columns,
+  }: {
+    item: TranscriptItem;
+    columns: number;
+  }) => {
+    return (
+      <Box flexDirection="column" width={columns} paddingLeft={1} marginTop={1}>
+        {getTranscriptItemText(item.kind, item.text)}
+      </Box>
+    );
+  }
+);
 
 export const Transcript = ({ transcript, columns }: Props) => {
   return (
-    <Static items={transcript} style={{ flexDirection: "column", paddingX: 1 }}>
-      {(item, index) => (
-        <TranscriptItem
-          key={`${item.id}-${index}`}
-          index={index}
-          item={item}
-          columns={columns}
-        />
-      )}
-    </Static>
+    <Box flexDirection="column" paddingX={1} width={columns}>
+      {transcript.map((item) => (
+        <TranscriptItem key={item.id} item={item} columns={columns} />
+      ))}
+    </Box>
   );
 };
