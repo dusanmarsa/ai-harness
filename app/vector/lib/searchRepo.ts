@@ -5,6 +5,11 @@ import {
   preloadVectorIndex,
   type OpenVectorDbOptions,
 } from "./openDb";
+import {
+  COL_TEXT_EMBEDDING,
+  META_KEY_DIMENSIONS,
+  TABLE_TEXT_CHUNKS,
+} from "../constants";
 import { getMeta } from "../utils";
 
 export type SearchHit = {
@@ -39,7 +44,7 @@ export async function searchCodebase(
 
   const db = openVectorDatabase(openOpts);
   try {
-    const dimMeta = getMeta(db, "dimensions");
+    const dimMeta = getMeta(db, META_KEY_DIMENSIONS);
     if (dimMeta && Number(dimMeta) !== options.dimensions) {
       throw new Error(
         `Embedding dimensions mismatch: index has ${dimMeta}, but EMBEDDING_DIMENSIONS (or default) is ${options.dimensions}. Re-run vector:index or align env.`
@@ -49,7 +54,7 @@ export async function searchCodebase(
     preloadVectorIndex(db);
 
     const countRow = db
-      .query(`SELECT COUNT(*) as c FROM code_chunks`)
+      .query(`SELECT COUNT(*) as c FROM ${TABLE_TEXT_CHUNKS}`)
       .get() as { c: number };
     if (Number(countRow.c) === 0) {
       return [];
@@ -73,8 +78,8 @@ export async function searchCodebase(
       .query(
         `SELECT c.path AS path, c.start_line AS startLine, c.end_line AS endLine,
                 c.body AS body, v.distance AS distance
-         FROM code_chunks c
-         INNER JOIN vector_quantize_scan('code_chunks', 'embedding', vector_as_f32(?), ?) v
+         FROM ${TABLE_TEXT_CHUNKS} c
+         INNER JOIN vector_quantize_scan('${TABLE_TEXT_CHUNKS}', '${COL_TEXT_EMBEDDING}', vector_as_f32(?), ?) v
          ON c.id = v.rowid`
       )
       .all(qJson, k) as SearchHit[];

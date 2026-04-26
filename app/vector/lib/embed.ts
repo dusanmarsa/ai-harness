@@ -1,6 +1,5 @@
 import OpenAI from "openai";
-
-const BATCH = 64;
+import { EMBED_BATCH_SIZE } from "../constants";
 
 export const embedTexts = async (
   client: OpenAI,
@@ -10,8 +9,8 @@ export const embedTexts = async (
 ): Promise<number[][]> => {
   const out: number[][] = [];
 
-  for (let i = 0; i < texts.length; i += BATCH) {
-    const slice = texts.slice(i, i + BATCH);
+  for (let i = 0; i < texts.length; i += EMBED_BATCH_SIZE) {
+    const slice = texts.slice(i, i + EMBED_BATCH_SIZE);
     
     const res = await client.embeddings.create({
       model,

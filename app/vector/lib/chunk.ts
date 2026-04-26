@@ -1,4 +1,4 @@
-const DEFAULT_MAX_CHARS = 4_000;
+import { CHUNK_MAX_CHARS } from "../constants";
 
 export type TextChunk = {
   startLine: number;
@@ -12,7 +12,7 @@ export type TextChunk = {
  */
 export const chunkSource = (
   content: string,
-  maxChars: number = DEFAULT_MAX_CHARS
+  maxChars: number = CHUNK_MAX_CHARS
 ): TextChunk[] => {
   const lines = content.split("\n");
   const chunks: TextChunk[] = [];

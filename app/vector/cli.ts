@@ -1,13 +1,14 @@
 import {
-  defaultDatabasePath,
-} from "./utils";
+  DEFAULT_EMBEDDING_DIMENSIONS,
+  DEFAULT_EMBEDDING_MODEL,
+  DEFAULT_TOP_K,
+  SEARCH_HIT_BODY_PREVIEW_CHARS,
+} from "./constants";
+import { defaultDatabasePath } from "./utils";
 import { indexCodebase } from "./lib/indexRepo";
 import { searchCodebase, type SearchHit } from "./lib/searchRepo";
 
-const DEFAULT_MODEL = "text-embedding-3-small";
-const DEFAULT_DIMS = 512;
-
-function usage(): never {
+const usage = (): never => {
   console.error(`Usage:
   bun --env-file=.env run app/vector/cli.ts index [--root <dir>] [--db <path>]
   bun --env-file=.env run app/vector/cli.ts search [--db <path>] [--top <n>] <query...>
@@ -16,8 +17,8 @@ Environment:
   OPEN_AI_API_KEY   required for index and search
   CODEBASE_ROOT     default: current directory
   VECTOR_DB         SQLite path (default: <cwd>/.code-embed/codebase.sqlite)
-  EMBEDDING_MODEL   default: ${DEFAULT_MODEL}
-  EMBEDDING_DIMENSIONS  default: ${String(DEFAULT_DIMS)}
+  EMBEDDING_MODEL   default: ${DEFAULT_EMBEDDING_MODEL}
+  EMBEDDING_DIMENSIONS  default: ${String(DEFAULT_EMBEDDING_DIMENSIONS)}
   SQLITE_VECTOR_EXTENSION  path to vector.dylib / vector.so / vector.dll (or use vendor/ after download)
   SQLITE3_DYLIB     macOS: path to libsqlite3.dylib from Homebrew (extensions often disabled on Apple sqlite)
 
@@ -68,7 +69,9 @@ function parseFlags(
 function formatHit(hit: SearchHit, i: number): string {
   const head = `${i + 1}. ${hit.path} (lines ${hit.startLine}–${hit.endLine})  distance=${hit.distance}`;
   const preview =
-    hit.body.length > 600 ? `${hit.body.slice(0, 600)}…` : hit.body;
+    hit.body.length > SEARCH_HIT_BODY_PREVIEW_CHARS
+      ? `${hit.body.slice(0, SEARCH_HIT_BODY_PREVIEW_CHARS)}…`
+      : hit.body;
   return `${head}\n${preview}\n`;
 }
 
@@ -84,9 +87,9 @@ const argTail = process.argv.slice(3);
 const defaultRoot = process.env.CODEBASE_ROOT ?? process.cwd();
 const defaultDb =
   process.env.VECTOR_DB ?? defaultDatabasePath(process.cwd());
-const model = process.env.EMBEDDING_MODEL ?? DEFAULT_MODEL;
+const model = process.env.EMBEDDING_MODEL ?? DEFAULT_EMBEDDING_MODEL;
 const dimensions = Number(
-  process.env.EMBEDDING_DIMENSIONS ?? String(DEFAULT_DIMS)
+  process.env.EMBEDDING_DIMENSIONS ?? String(DEFAULT_EMBEDDING_DIMENSIONS)
 );
 if (!Number.isFinite(dimensions) || dimensions < 1) {
   console.error("Invalid EMBEDDING_DIMENSIONS");
@@ -99,7 +102,7 @@ if (cmd === "index") {
   const { root, dbPath } = parseFlags(argTail, {
     root: defaultRoot,
     dbPath: defaultDb,
-    topK: 8,
+    topK: DEFAULT_TOP_K,
   });
   console.error(`Indexing ${root} -> ${dbPath} …`);
   const { files, chunks } = await indexCodebase({
@@ -119,7 +122,7 @@ if (cmd === "search") {
   const { dbPath, topK, rest } = parseFlags(argTail, {
     root: defaultRoot,
     dbPath: defaultDb,
-    topK: 8,
+    topK: DEFAULT_TOP_K,
   });
   const query = rest.join(" ").trim();
   if (!query) {
