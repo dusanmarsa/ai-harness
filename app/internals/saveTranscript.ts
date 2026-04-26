@@ -1,6 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
-import type { ChatCompletionMessageParam } from "openai/resources";
+import type { ModelMessage } from "ai";
 
 const TRANSCRIPTS_DIR = join(process.cwd(), ".transcripts");
 
@@ -15,7 +15,7 @@ export const makeSessionPath = (): string => {
 
 export const saveTranscript = async (
   sessionPath: string,
-  messages: ChatCompletionMessageParam[],
+  messages: ModelMessage[],
 ): Promise<void> => {
   await mkdir(TRANSCRIPTS_DIR, { recursive: true });
   await Bun.write(sessionPath, JSON.stringify(messages, null, 2));

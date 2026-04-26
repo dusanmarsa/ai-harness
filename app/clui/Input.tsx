@@ -2,9 +2,13 @@ import { useCallback, useState, type Dispatch, type RefObject, type SetStateActi
 import { Box } from "ink";
 import { Text } from "ink";
 import TextInput from "ink-text-input";
-import type { ChatCompletionMessageParam } from "openai/resources";
+import type { ModelMessage } from "ai";
 import type { TranscriptItem } from "./Transcript";
-import { getLastAssistantMessage, runModelTurn } from "../internals/runModelTurn";
+import {
+  assistantText,
+  getLastAssistantMessage,
+  runModelTurn,
+} from "../internals/runModelTurn";
 import { saveTranscript } from "../internals/saveTranscript";
 
 type Props = {
@@ -12,7 +16,7 @@ type Props = {
   setBusy: Dispatch<SetStateAction<boolean>>;
   setTranscript: Dispatch<SetStateAction<TranscriptItem[]>>;
   setStreamingText: Dispatch<SetStateAction<string>>;
-  messagesRef: RefObject<ChatCompletionMessageParam[]>;
+  messagesRef: RefObject<ModelMessage[]>;
   sessionPath: string;
 };
 
@@ -50,11 +54,14 @@ export const Input = ({ busy, setBusy, setTranscript, setStreamingText, messages
 
         const reply = getLastAssistantMessage(messagesRef.current);
 
-        if (reply && typeof reply.content === "string") {
-          setTranscript((t) => [
-            ...t,
-            createTranscriptItem("assistant", reply.content as string),
-          ]);
+        if (reply) {
+          const text = assistantText(reply);
+          if (text) {
+            setTranscript((t) => [
+              ...t,
+              createTranscriptItem("assistant", text),
+            ]);
+          }
         }
 
         await saveTranscript(sessionPath, messagesRef.current);

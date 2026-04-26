@@ -1,4 +1,4 @@
-import type { ChatCompletionTool } from "openai/resources";
+import { tool, type Tool } from "ai";
 import { readdir } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
 import { z } from "zod";
@@ -23,7 +23,7 @@ function normalizeSeparators(p: string): string {
 function shouldMatch(
   relPath: string,
   fileName: string,
-  query: string
+  query: string,
 ): boolean {
   const q = query.trim().toLowerCase();
   if (!q) {
@@ -43,7 +43,7 @@ async function walk(
   rootDir: string,
   dir: string,
   query: string,
-  results: string[]
+  results: string[],
 ): Promise<void> {
   if (results.length >= MAX_RESULTS) {
     return;
@@ -70,7 +70,7 @@ async function walk(
 
 export async function findFilesToolFunction(
   query: string,
-  rootDir: string = process.cwd()
+  rootDir: string = process.cwd(),
 ): Promise<string> {
   const results: string[] = [];
   await walk(rootDir, rootDir, query, results);
@@ -87,23 +87,23 @@ export async function findFilesToolFunction(
   return results.join("\n");
 }
 
-export const findFilesToolFunctionArgsSchema = z
-  .object({
+type Parameters = {
+  onLog?: (message: string) => void;
+};
+
+export default (options: Parameters): Tool => tool({
+  description:
+    "Search the workspace for file paths that match a partial name, path segment, or extension. Names are matched case-insensitively (e.g. 'readfile' matches readFile.ts).",
+  inputSchema: z.object({
     query: z
       .string()
       .min(1)
       .describe(
-        "Fragment to match: part of a file or path (e.g. main, readfile, tools), or a leading-dot extension (e.g. .ts) to filter by file extension"
+        "Fragment to match: part of a file or path (e.g. main, readfile, tools), or a leading-dot extension (e.g. .ts) to filter by file extension",
       ),
-  })
-  .strict();
-
-export const findFilesToolDefinition = {
-  type: "function",
-  function: {
-    name: "findFiles",
-    description:
-      "Search the workspace for file paths that match a partial name, path segment, or extension. Names are matched case-insensitively (e.g. 'readfile' matches readFile.ts).",
-    parameters: findFilesToolFunctionArgsSchema.toJSONSchema(),
+  }),
+  execute: async ({ query }) => {
+    options.onLog?.(`Finding files: ${query}`);
+    return findFilesToolFunction(query);
   },
-} satisfies ChatCompletionTool;
+});

@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Box, Text, useWindowSize } from "ink";
-import type { ChatCompletionMessageParam } from "openai/resources";
+import type { ModelMessage } from "ai";
 import { createMessagesArray } from "../internals/runModelTurn";
 import { makeSessionPath } from "../internals/saveTranscript";
 import Spinner from "ink-spinner";
@@ -13,7 +13,7 @@ export const ClUI = () => {
   const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
   const [busy, setBusy] = useState(false);
   const [streamingText, setStreamingText] = useState("");
-  const messagesRef = useRef<ChatCompletionMessageParam[]>(
+  const messagesRef = useRef<ModelMessage[]>(
     createMessagesArray(),
   );
   const sessionPathRef = useRef<string>(makeSessionPath());

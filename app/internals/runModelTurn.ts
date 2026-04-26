@@ -1,17 +1,20 @@
-import OpenAI from "openai";
-import type {
-  ChatCompletionAssistantMessageParam,
-  ChatCompletionMessageParam,
-} from "openai/resources";
-import { processToolCall, tools } from "../tools";
+import { createOpenAI } from "@ai-sdk/openai";
+import type { AssistantModelMessage, ModelMessage } from "ai";
+import { stepCountIs, streamText } from "ai";
+
+import { createModelTools } from "../tools";
+
+const openaiProvider = createOpenAI({
+  apiKey: process.env.OPEN_AI_API_KEY ?? process.env.OPENAI_API_KEY,
+});
+
+const chatModel = openaiProvider("gpt-4.1");
 
 export const DEFAULT_SYSTEM_CONTENT =
   "You are a helpful assistant that can answer questions and help with tasks.";
 
-export const createMessagesArray = (
-  firstUserMessage?: string,
-): ChatCompletionMessageParam[] => {
-  const base: ChatCompletionMessageParam[] = [
+export const createMessagesArray = (firstUserMessage?: string): ModelMessage[] => {
+  const base: ModelMessage[] = [
     { role: "system", content: DEFAULT_SYSTEM_CONTENT },
   ];
 
@@ -23,17 +26,28 @@ export const createMessagesArray = (
 };
 
 export const getLastAssistantMessage = (
-  messages: ChatCompletionMessageParam[],
-): ChatCompletionAssistantMessageParam | null => {
-  let lastAssistantMessageContent: ChatCompletionAssistantMessageParam | null = null;
+  messages: ModelMessage[],
+): AssistantModelMessage | null => {
+  let lastAssistantMessage: AssistantModelMessage | null = null;
 
-  for (const m of messages) { 
+  for (const m of messages) {
     if (m.role === "assistant") {
-      lastAssistantMessageContent = m satisfies ChatCompletionAssistantMessageParam;
+      lastAssistantMessage = m;
     }
   }
 
-  return lastAssistantMessageContent;
+  return lastAssistantMessage;
+};
+
+export const assistantText = (message: AssistantModelMessage): string => {
+  const { content } = message;
+  if (typeof content === "string") {
+    return content;
+  }
+  return content
+    .filter((part): part is { type: "text"; text: string } => part.type === "text")
+    .map((p) => p.text)
+    .join("");
 };
 
 export type RunModelTurnOptions = {
@@ -42,76 +56,35 @@ export type RunModelTurnOptions = {
 };
 
 export const runModelTurn = async (
-  messages: ChatCompletionMessageParam[],
+  messages: ModelMessage[],
   options?: RunModelTurnOptions,
 ): Promise<void> => {
-  const client = new OpenAI({ apiKey: process.env.OPEN_AI_API_KEY });
-
   const { onToolLog, onChunk } = options ?? {};
 
-  let shouldContinue = true;
+  const tools = createModelTools({ onLog: onToolLog });
 
-  while (shouldContinue) {
-    const runner = client.chat.completions.stream({
-      model: "gpt-4.1",
-      messages,
-      tools,
-    });
+  const promptMessages = messages.filter((m) => m.role !== "system");
 
-    if (onChunk) {
-      runner.on("content", (delta) => onChunk(delta));
-    }
-
-    const finalCompletion = await runner.finalChatCompletion();
-    const choice = finalCompletion.choices?.[0];
-
-    if (!choice) {
-      throw new Error("No response choice from the model");
-    }
-
-    const msg = choice.message;
-
-    if (!msg) {
-      throw new Error("No message from the model");
-    }
-
-    messages.push({
-      role: "assistant",
-      content: msg.content,
-      tool_calls: msg.tool_calls,
-    } satisfies ChatCompletionAssistantMessageParam);
-
-    if (choice.finish_reason === "stop" || !msg.tool_calls?.length) {
-      shouldContinue = false;
-      break;
-    }
-
-    if (choice.finish_reason === "tool_calls") {
-      for (const toolCall of msg.tool_calls) {
-        const { type: toolType, id: toolCallId } = toolCall;
-
-        if (!toolCallId || !toolType) {
-          throw new Error("No tool call id or type from the model");
-        }
-
-        if (toolType === "function") {
-          const { name, arguments: args } = toolCall.function;
-
-          if (!name || args === undefined) {
-            continue;
-          }
-
-          const toolResult = await processToolCall(toolCallId, name, args, {
-            onLog: onToolLog,
-          });
-
-          if (!toolResult) {
-            throw new Error("No tool result from the model");
-          }
-
-          messages.push(toolResult);
-        }
+  const result = streamText({
+    model: chatModel,
+    system: DEFAULT_SYSTEM_CONTENT,
+    messages: promptMessages,
+    tools,
+    stopWhen: stepCountIs(20),
+    onChunk: ({ chunk }) => {
+      if (chunk.type === "text-delta") {
+        onChunk?.(chunk.text);
       }
+    },
+  });
+
+  await result.consumeStream();
+
+  const steps = await result.steps;
+  
+  for (const step of steps) {
+    for (const msg of step.response.messages) {
+      messages.push(msg);
     }
   }
-}
+};
