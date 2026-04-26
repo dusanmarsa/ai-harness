@@ -20,6 +20,7 @@ export const IGNORE_FILE_NAMES = new Set([
   ".env.development",
   ".env.production",
   ".env.test",
+  "bun.lockb",
 ]);
 
 // ——— CLI & embedding defaults ———

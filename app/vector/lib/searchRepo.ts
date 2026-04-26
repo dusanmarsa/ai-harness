@@ -32,7 +32,7 @@ export type SearchOptions = {
 };
 
 export async function searchCodebase(
-  options: SearchOptions
+  options: SearchOptions,
 ): Promise<SearchHit[]> {
   const openOpts: OpenVectorDbOptions = {
     dbPath: options.dbPath,
@@ -47,7 +47,7 @@ export async function searchCodebase(
     const dimMeta = getMeta(db, META_KEY_DIMENSIONS);
     if (dimMeta && Number(dimMeta) !== options.dimensions) {
       throw new Error(
-        `Embedding dimensions mismatch: index has ${dimMeta}, but EMBEDDING_DIMENSIONS (or default) is ${options.dimensions}. Re-run vector:index or align env.`
+        `Embedding dimensions mismatch: index has ${dimMeta}, but EMBEDDING_DIMENSIONS (or default) is ${options.dimensions}. Re-run vector:index or align env.`,
       );
     }
 
@@ -65,7 +65,7 @@ export async function searchCodebase(
       client,
       [options.query],
       options.embeddingModel,
-      options.dimensions
+      options.dimensions,
     );
     if (!queryEmbedding) {
       return [];
@@ -80,16 +80,18 @@ export async function searchCodebase(
                 c.body AS body, v.distance AS distance
          FROM ${TABLE_TEXT_CHUNKS} c
          INNER JOIN vector_quantize_scan('${TABLE_TEXT_CHUNKS}', '${COL_TEXT_EMBEDDING}', vector_as_f32(?), ?) v
-         ON c.id = v.rowid`
+         ON c.id = v.rowid`,
       )
       .all(qJson, k) as SearchHit[];
 
-    return rows.map((r) => ({
-      ...r,
-      distance: Number(r.distance),
-      startLine: Number(r.startLine),
-      endLine: Number(r.endLine),
-    }));
+    return rows
+      .map((r) => ({
+        ...r,
+        distance: Number(r.distance),
+        startLine: Number(r.startLine),
+        endLine: Number(r.endLine),
+      }))
+      .sort((a, b) => b.distance - a.distance);
   } finally {
     db.close();
   }
