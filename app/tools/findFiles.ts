@@ -91,19 +91,20 @@ type Parameters = {
   onLog?: (message: string) => void;
 };
 
-export default (options: Parameters): Tool => tool({
-  description:
-    "Search the workspace for file paths that match a partial name, path segment, or extension. Names are matched case-insensitively (e.g. 'readfile' matches readFile.ts).",
-  inputSchema: z.object({
-    query: z
-      .string()
-      .min(1)
-      .describe(
-        "Fragment to match: part of a file or path (e.g. main, readfile, tools), or a leading-dot extension (e.g. .ts) to filter by file extension",
-      ),
-  }),
-  execute: async ({ query }) => {
-    options.onLog?.(`Finding files: ${query}`);
-    return findFilesToolFunction(query);
-  },
-});
+export default (options: Parameters): Tool =>
+  tool({
+    description:
+      "Search the workspace for file paths that match a partial name, path segment, or extension. Names are matched case-insensitively (e.g. 'readfile' matches readFile.ts).",
+    inputSchema: z.object({
+      query: z
+        .string()
+        .min(1)
+        .describe(
+          "Fragment to match: part of a file or path (e.g. main, readfile, tools), or a leading-dot extension (e.g. .ts) to filter by file extension",
+        ),
+    }),
+    execute: async ({ query }) => {
+      options.onLog?.(`Finding files: ${query}`);
+      return findFilesToolFunction(query);
+    },
+  });

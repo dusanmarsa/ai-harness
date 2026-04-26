@@ -12,7 +12,7 @@ export type TextChunk = {
  */
 export const chunkSource = (
   content: string,
-  maxChars: number = CHUNK_MAX_CHARS
+  maxChars: number = CHUNK_MAX_CHARS,
 ): TextChunk[] => {
   const lines = content.split("\n");
   const chunks: TextChunk[] = [];
@@ -53,21 +53,25 @@ export const chunkSource = (
 
   if (buffer.length > 0) {
     chunks.push(
-      flushBuffer(buffer, startLine, lines.length > 0 ? lines.length : startLine)
+      flushBuffer(
+        buffer,
+        startLine,
+        lines.length > 0 ? lines.length : startLine,
+      ),
     );
   }
 
   return chunks;
-}
+};
 
 const flushBuffer = (
   buffer: string[],
   startLine: number,
-  endLineInclusive: number
+  endLineInclusive: number,
 ): TextChunk => {
   return {
     startLine,
     endLine: endLineInclusive,
     text: buffer.join("\n"),
   };
-}
+};

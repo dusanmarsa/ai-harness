@@ -18,7 +18,7 @@ import type { Database } from "bun:sqlite";
 export const getMeta = (db: Database, key: string): string | undefined => {
   const row = db
     .query(
-      `SELECT ${COL_INDEX_META_VALUE} FROM ${TABLE_INDEX_META} WHERE ${COL_INDEX_META_KEY} = ?`
+      `SELECT ${COL_INDEX_META_VALUE} FROM ${TABLE_INDEX_META} WHERE ${COL_INDEX_META_KEY} = ?`,
     )
     .get(key) as { value: string } | undefined;
   return row?.value;
@@ -27,7 +27,7 @@ export const getMeta = (db: Database, key: string): string | undefined => {
 export const setMeta = (db: Database, key: string, value: string): void => {
   db.run(
     `INSERT OR REPLACE INTO ${TABLE_INDEX_META} (${COL_INDEX_META_KEY}, ${COL_INDEX_META_VALUE}) VALUES (?, ?)`,
-    [key, value]
+    [key, value],
   );
 };
 
@@ -62,7 +62,7 @@ export const defaultVendorVectorPath = (
     cwd,
     VENDOR_DIR_NAME,
     SQLITE_VECTOR_VENDOR_DIR_NAME,
-    defaultVectorLibraryFilename()
+    defaultVectorLibraryFilename(),
   );
 };
 

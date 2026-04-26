@@ -4,6 +4,7 @@ import readFileTool from "./readFile";
 import findFilesTool from "./findFiles";
 import semanticSearchTool from "./semanticSearch";
 import writeTool from "./write";
+import bashTool from "./bash";
 
 export const createModelTools = (options?: {
   onLog?: (message: string) => void;
@@ -15,5 +16,6 @@ export const createModelTools = (options?: {
     Find: findFilesTool({ onLog: log }),
     Write: writeTool({ onLog: log }),
     SemanticSearch: semanticSearchTool({ onLog: log }),
+    Bash: bashTool({ onLog: log }),
   };
 };

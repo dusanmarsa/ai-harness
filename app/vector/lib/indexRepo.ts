@@ -129,7 +129,7 @@ export const indexCodebase = async (
     rebuildVectorIndex(db);
 
     const now = new Date().toISOString();
-    
+
     setMeta(db, META_KEY_DIMENSIONS, String(options.dimensions));
     setMeta(db, META_KEY_EMBEDDING_MODEL, options.embeddingModel);
     setMeta(db, META_KEY_ROOT, options.root);

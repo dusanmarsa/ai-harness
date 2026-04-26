@@ -5,13 +5,13 @@ export const embedTexts = async (
   client: OpenAI,
   texts: string[],
   model: string,
-  dimensions: number
+  dimensions: number,
 ): Promise<number[][]> => {
   const out: number[][] = [];
 
   for (let i = 0; i < texts.length; i += EMBED_BATCH_SIZE) {
     const slice = texts.slice(i, i + EMBED_BATCH_SIZE);
-    
+
     const res = await client.embeddings.create({
       model,
       input: slice,
@@ -26,4 +26,4 @@ export const embedTexts = async (
     out.push(...ordered);
   }
   return out;
-}
+};

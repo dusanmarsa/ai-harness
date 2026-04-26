@@ -6,10 +6,7 @@ const TRANSCRIPTS_DIR = join(process.cwd(), ".transcripts");
 
 export const makeSessionPath = (): string => {
   const now = new Date();
-  const stamp = now
-    .toISOString()
-    .replace(/:/g, "-")
-    .replace(/\..+$/, "");
+  const stamp = now.toISOString().replace(/:/g, "-").replace(/\..+$/, "");
   return join(TRANSCRIPTS_DIR, `${stamp}.json`);
 };
 

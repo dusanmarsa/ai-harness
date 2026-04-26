@@ -38,12 +38,20 @@ const splitWithCode = (text: string) => {
 
 const AssitantMessage = ({ text }: { text: string }) => {
   if (!hasCode(text)) {
-    return <Text bold color="green" wrap="wrap">{text}</Text>;
+    return (
+      <Text bold color="green" wrap="wrap">
+        {text}
+      </Text>
+    );
   }
 
   const parsed = splitWithCode(text);
   if (!parsed) {
-    return <Text color="green" wrap="wrap">{text}</Text>;
+    return (
+      <Text color="green" wrap="wrap">
+        {text}
+      </Text>
+    );
   }
 
   const { textBeforeCodeBlock, language, code, textAfterCodeBlock } = parsed;
@@ -52,15 +60,24 @@ const AssitantMessage = ({ text }: { text: string }) => {
     <Box flexDirection="column" gap={1}>
       {textBeforeCodeBlock && (
         <Box>
-          <Text color="green" wrap="wrap">{textBeforeCodeBlock}</Text>
+          <Text color="green" wrap="wrap">
+            {textBeforeCodeBlock}
+          </Text>
         </Box>
       )}
-      <Box borderStyle="single" borderColor="gray" borderDimColor alignSelf="flex-start">
+      <Box
+        borderStyle="single"
+        borderColor="gray"
+        borderDimColor
+        alignSelf="flex-start"
+      >
         {code ? <SyntaxHighlight code={code} language={language} /> : null}
       </Box>
       {textAfterCodeBlock && (
         <Box>
-          <Text color="green" wrap="wrap">{textAfterCodeBlock}</Text>
+          <Text color="green" wrap="wrap">
+            {textAfterCodeBlock}
+          </Text>
         </Box>
       )}
     </Box>

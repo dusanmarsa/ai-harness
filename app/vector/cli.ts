@@ -26,7 +26,7 @@ Scripts:
   bun run vector:download   fetch sqlite-vector for this OS/arch into vendor/sqlite-vector/
 `);
   process.exit(1);
-}
+};
 
 type ParsedFlags = {
   root: string;
@@ -37,7 +37,7 @@ type ParsedFlags = {
 
 function parseFlags(
   argv: string[],
-  defaults: { root: string; dbPath: string; topK: number }
+  defaults: { root: string; dbPath: string; topK: number },
 ): ParsedFlags {
   let root = defaults.root;
   let dbPath = defaults.dbPath;
@@ -85,11 +85,10 @@ const cmd = process.argv[2];
 const argTail = process.argv.slice(3);
 
 const defaultRoot = process.env.CODEBASE_ROOT ?? process.cwd();
-const defaultDb =
-  process.env.VECTOR_DB ?? defaultDatabasePath(process.cwd());
+const defaultDb = process.env.VECTOR_DB ?? defaultDatabasePath(process.cwd());
 const model = process.env.EMBEDDING_MODEL ?? DEFAULT_EMBEDDING_MODEL;
 const dimensions = Number(
-  process.env.EMBEDDING_DIMENSIONS ?? String(DEFAULT_EMBEDDING_DIMENSIONS)
+  process.env.EMBEDDING_DIMENSIONS ?? String(DEFAULT_EMBEDDING_DIMENSIONS),
 );
 if (!Number.isFinite(dimensions) || dimensions < 1) {
   console.error("Invalid EMBEDDING_DIMENSIONS");

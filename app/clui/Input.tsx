@@ -1,4 +1,10 @@
-import { useCallback, useState, type Dispatch, type RefObject, type SetStateAction } from "react";
+import {
+  useCallback,
+  useState,
+  type Dispatch,
+  type RefObject,
+  type SetStateAction,
+} from "react";
 import { Box } from "ink";
 import { Text } from "ink";
 import TextInput from "ink-text-input";
@@ -20,11 +26,21 @@ type Props = {
   sessionPath: string;
 };
 
-const createTranscriptItem = (kind: "user" | "assistant" | "tool" | "error", text: string): TranscriptItem => {
+const createTranscriptItem = (
+  kind: "user" | "assistant" | "tool" | "error",
+  text: string,
+): TranscriptItem => {
   return { id: crypto.randomUUID(), kind, text };
 };
 
-export const Input = ({ busy, setBusy, setTranscript, setStreamingText, messagesRef, sessionPath }: Props) => {
+export const Input = ({
+  busy,
+  setBusy,
+  setTranscript,
+  setStreamingText,
+  messagesRef,
+  sessionPath,
+}: Props) => {
   const [input, setInput] = useState("");
 
   const submit = useCallback(

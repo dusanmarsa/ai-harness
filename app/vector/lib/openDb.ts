@@ -69,7 +69,7 @@ export const expandDarwinBrewInPath = (value: string): string => {
   } catch {
     return value.trim();
   }
-}
+};
 
 export const homebrewSqliteFromPrefix = (): string | undefined => {
   try {
@@ -96,13 +96,18 @@ export const homebrewSqliteFromPrefix = (): string | undefined => {
  * `sqlite3_load_extension` — and it must be set before the first `Database` construct.
  */
 export const resolveCustomSqliteLib = (
-  fromOptions: string | undefined
+  fromOptions: string | undefined,
 ): string | undefined => {
-  const fromEnv = fromOptions ?? process.env.SQLITE3_DYLIB ?? process.env.BUN_CUSTOM_SQLITELIB;
+  const fromEnv =
+    fromOptions ??
+    process.env.SQLITE3_DYLIB ??
+    process.env.BUN_CUSTOM_SQLITELIB;
 
   if (fromEnv) {
     const candidate =
-      process.platform === "darwin" ? expandDarwinBrewInPath(fromEnv) : fromEnv.trim();
+      process.platform === "darwin"
+        ? expandDarwinBrewInPath(fromEnv)
+        : fromEnv.trim();
 
     if (existsSync(candidate)) {
       return candidate;
@@ -122,7 +127,9 @@ export const resolveCustomSqliteLib = (
   return homebrewSqliteFromPrefix();
 };
 
-export const applyCustomSqliteOnDarwin = (sqliteLib: string | undefined): void => {
+export const applyCustomSqliteOnDarwin = (
+  sqliteLib: string | undefined,
+): void => {
   if (process.platform !== "darwin" || !sqliteLib) {
     return;
   }
@@ -141,7 +148,7 @@ export const openVectorDatabase = (options: OpenVectorDbOptions): Database => {
     throw new Error(
       `sqlite-vector native library not found at ${extPath}.\n` +
         `Run: bun run vector:download\n` +
-        `Or set SQLITE_VECTOR_EXTENSION to the full path of vector.dylib / vector.so / vector.dll.`
+        `Or set SQLITE_VECTOR_EXTENSION to the full path of vector.dylib / vector.so / vector.dll.`,
     );
   }
 
@@ -166,7 +173,7 @@ export const openVectorDatabase = (options: OpenVectorDbOptions): Database => {
         : "";
 
     throw new Error(
-      `Failed to load sqlite-vector from ${extPath}: ${e}${hint}`
+      `Failed to load sqlite-vector from ${extPath}: ${e}${hint}`,
     );
   }
 
@@ -192,7 +199,7 @@ export const openVectorDatabase = (options: OpenVectorDbOptions): Database => {
 
   db.run(
     `SELECT vector_init('${TABLE_TEXT_CHUNKS}', '${COL_TEXT_EMBEDDING}', ?);`,
-    [vectorOpts]
+    [vectorOpts],
   );
 
   return db;
@@ -201,10 +208,10 @@ export const openVectorDatabase = (options: OpenVectorDbOptions): Database => {
 /** Call after changing the chunks table (full reindex or inserts). */
 export const rebuildVectorIndex = (db: Database): void => {
   db.run(
-    `SELECT vector_quantize('${TABLE_TEXT_CHUNKS}', '${COL_TEXT_EMBEDDING}');`
+    `SELECT vector_quantize('${TABLE_TEXT_CHUNKS}', '${COL_TEXT_EMBEDDING}');`,
   );
   db.run(
-    `SELECT vector_quantize_preload('${TABLE_TEXT_CHUNKS}', '${COL_TEXT_EMBEDDING}');`
+    `SELECT vector_quantize_preload('${TABLE_TEXT_CHUNKS}', '${COL_TEXT_EMBEDDING}');`,
   );
 };
 
@@ -215,9 +222,9 @@ export const rebuildVectorIndex = (db: Database): void => {
 export const preloadVectorIndex = (db: Database): void => {
   try {
     db.run(
-      `SELECT vector_quantize_preload('${TABLE_TEXT_CHUNKS}', '${COL_TEXT_EMBEDDING}');`
+      `SELECT vector_quantize_preload('${TABLE_TEXT_CHUNKS}', '${COL_TEXT_EMBEDDING}');`,
     );
   } catch {
     /* empty DB or no quantization yet */
   }
-}
+};

@@ -83,12 +83,13 @@ type Parameters = {
   onLog?: (message: string) => void;
 };
 
-export default (options: Parameters): Tool => tool({
-  description:
-    "Search the codebase by meaning using the local vector index. Use for conceptual questions (how X works, where Y is configured) after the repo has been indexed with `bun run vector:index`. For file name or path fragments, use findFiles instead.",
-  inputSchema: semanticSearchToolFunctionArgsSchema,
-  execute: async ({ query, topK }) => {
-    options.onLog?.(`Semantic searching: ${query}`);
-    return semanticSearchToolFunction(query, topK ?? 8);
-  },
-});
+export default (options: Parameters): Tool =>
+  tool({
+    description:
+      "Search the codebase by meaning using the local vector index. Use for conceptual questions (how X works, where Y is configured) after the repo has been indexed with `bun run vector:index`. For file name or path fragments, use findFiles instead.",
+    inputSchema: semanticSearchToolFunctionArgsSchema,
+    execute: async ({ query, topK }) => {
+      options.onLog?.(`Semantic searching: ${query}`);
+      return semanticSearchToolFunction(query, topK ?? 8);
+    },
+  });

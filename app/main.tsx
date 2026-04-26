@@ -15,7 +15,7 @@ if (!process.stdin.isTTY || !process.stdout.isTTY) {
 }
 
 const { waitUntilExit } = render(<ClUI />, {
-  exitOnCtrlC: true
+  exitOnCtrlC: true,
 });
 
 await waitUntilExit();

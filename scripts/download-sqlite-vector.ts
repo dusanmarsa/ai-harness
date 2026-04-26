@@ -26,7 +26,7 @@ function getAssetForPlatform(): Asset {
     return { name: `vector-windows-x86_64-${VERSION}.zip`, extract: "zip" };
   }
   throw new Error(
-    `No prebuilt sqlite-vector binary mapping for ${platform} ${arch}. See https://github.com/sqliteai/sqlite-vector/releases`
+    `No prebuilt sqlite-vector binary mapping for ${platform} ${arch}. See https://github.com/sqliteai/sqlite-vector/releases`,
   );
 }
 
@@ -67,7 +67,7 @@ if (asset.extract === "tar") {
         "-Command",
         `Expand-Archive -Path "${archivePath}" -DestinationPath "${OUT_DIR}" -Force`,
       ],
-      { stdio: "inherit" }
+      { stdio: "inherit" },
     );
     if (ps.status !== 0) {
       process.exit(ps.status ?? 1);
@@ -75,4 +75,6 @@ if (asset.extract === "tar") {
   }
 }
 
-console.error(`Extracted to ${OUT_DIR}. You can delete ${archivePath} to save space.`);
+console.error(
+  `Extracted to ${OUT_DIR}. You can delete ${archivePath} to save space.`,
+);

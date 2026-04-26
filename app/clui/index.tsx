@@ -21,7 +21,10 @@ export const ClUI = () => {
 
       {streamingText ? (
         <Box paddingLeft={2} marginTop={1} width={columns}>
-          <Text bold color="green" wrap="wrap">{"* "}{streamingText}</Text>
+          <Text bold color="green" wrap="wrap">
+            {"* "}
+            {streamingText}
+          </Text>
         </Box>
       ) : null}
 

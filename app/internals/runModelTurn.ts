@@ -31,7 +31,9 @@ export const assistantText = (message: AssistantModelMessage): string => {
     return content;
   }
   return content
-    .filter((part): part is { type: "text"; text: string } => part.type === "text")
+    .filter(
+      (part): part is { type: "text"; text: string } => part.type === "text",
+    )
     .map((p) => p.text)
     .join("");
 };

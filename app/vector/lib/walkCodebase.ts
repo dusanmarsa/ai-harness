@@ -35,7 +35,7 @@ export const walkCodebase = async (root: string): Promise<WalkedFile[]> => {
         });
       }
     }
-  }
+  };
 
   await walk(root);
 
