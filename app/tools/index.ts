@@ -1,25 +1,36 @@
 import type { ChatCompletionToolMessageParam } from "openai/resources";
+import { ZodError } from "zod";
+
 import {
   findFilesToolDefinition,
   findFilesToolFunction,
   findFilesToolFunctionArgsSchema,
 } from "./findFiles";
+
 import {
   readFileToolDefinition,
   readFileToolFunction,
   readFileToolFunctionArgsSchema,
 } from "./readFile";
-import { ZodError } from "zod";
+
+
 import {
   semanticSearchToolDefinition,
   semanticSearchToolFunction,
   semanticSearchToolFunctionArgsSchema,
 } from "./semanticSearch";
 
+import {
+  writeToolDefinition,
+  writeToolFunction,
+  writeToolFunctionArgsSchema,
+} from "./write";
+
 export const tools = [
   findFilesToolDefinition,
   readFileToolDefinition,
   semanticSearchToolDefinition,
+  writeToolDefinition,
 ];
 
 const parseJsonArgs = (args: string) => {
@@ -74,7 +85,7 @@ export const processToolCall = async (
         return createToolErrorMessage(toolCallId, error);
       }
 
-      log(`Reading file: ${data.filePath}`);
+      log(`Read: ${data.filePath}`);
 
       const fileContent = await readFileToolFunction(data.filePath);
 
@@ -88,11 +99,25 @@ export const processToolCall = async (
         return createToolErrorMessage(toolCallId, error);
       }
 
-      log(`Finding files: ${data.query}`);
+      log(`Exploring: ${data.query}`);
 
       const listing = await findFilesToolFunction(data.query);
 
       return createToolSuccessMessage(toolCallId, listing);
+    }
+    case "Write": {
+      const { success, data, error } =
+        writeToolFunctionArgsSchema.safeParse(parseJsonArgs(toolArgs));
+
+      if (!success) {
+        return createToolErrorMessage(toolCallId, error);
+      }
+
+      log(`Write: ${data.filePath}`);
+
+      await writeToolFunction(data.filePath, data.content);
+
+      return createToolSuccessMessage(toolCallId, `Content of ${data.filePath} updated.`);
     }
     case "semanticSearch": {
       const { success, data, error } =
@@ -102,7 +127,7 @@ export const processToolCall = async (
         return createToolErrorMessage(toolCallId, error);
       }
 
-      log(`Searching: ${data.query}`);
+      log(`Search: ${data.query}`);
 
       const text = await semanticSearchToolFunction(data.query, data.topK);
 
